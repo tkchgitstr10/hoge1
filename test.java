@@ -387,9 +387,11 @@ public class test {
                 } else {
                     temp = new Time();
 
-                    calendarToTime(cc, temp);
+                    Calendar ccc = new GregorianCalendar();
 
-                    if (compareTime(output.end, temp)) {
+                    calendarToTime(ccc, temp);
+
+                    if (compareTime(temp, output.start)) {
                         System.out.println("This class ends: ");
                         System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
                         System.out.print("Class name: ");
