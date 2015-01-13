@@ -1,161 +1,237 @@
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
-class test {
+public class test {
 
-	public static String weekdays[] = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+    public static String weekdays[] = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
 
-	class Koma {
-		int status;
-		int startHour;
-		int startMinute;
-		String name;
+    static class Time {
+        int Hour;
+        int Minute;
+        int Second;
 
-		public int getStatus() {
-			return status;
-		}
-
-		public int getHour() {
-			return startHour;
-		}
-
-		public int getMinute() {
-			return startMinute;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setHour(int input) {
-			startHour = input;
-		}
-
-		public void setMinute(int input) {
-			startMinute = input;
-		}
-
-		public void setStatus(int input) {
-			status = input;
-		}
-
-		public void setName(String input) {
-			name = input;
-		}
-	}
-
-	public static int findWeekday(int y, int m, int d) {
-
-		if (m == 1) {
-            m = 13;
-            y--;
-        } else if (m == 2) {
-            m = 14;
-            y--;
+        public int getHour() {
+            return this.Hour;
         }
-        
-        int c = y / 100;
 
-        int cy = y % 100;
+        public int getMinute() {
+            return this.Minute;
+        }
 
-        double h = (d + ((26*(m + 1)) / 10) + cy + (cy / 4) + (c / 4) + (5 * c)) % 7; // magic
-        return (int)((h+3)%7);
-	}
+        public int getSecond() {
+            return this.Second;
+        }
 
-	public static void registerSchedule(Koma[][] input) {
-		for ( int i = 0; i < 5 ; i++ ) {
-			System.out.println("\nRegistering " + weekdays[i] + "...");
-			for (int j = 0; j < 13 ; j++) {
-				System.out.println("Is koma " + j + " registered?");
-				Scanner in = new Scanner(System.in);
-				int temp = in.nextInt();
-				if (temp > 0) {
-					input[i][j].setStatus(in.nextInt());
-					System.out.println("startHour :");
-					input[i][j].setHour(in.nextInt());
-					System.out.println("startMinute :");
-					input[i][j].setMinute(in.nextInt());
-					System.out.println("name :");
-					input[i][j].setName(System.console().readLine());
-					System.out.println();
-				}
-			}
-		}
-	}
+        public void setHour(int input) {
+            this.Hour = input;
+        }
 
-	public static void buildKomaTime(Calendar target, Koma koma) {
+        public void setMinute(int input) {
+            this.Minute = input;
+        }
 
-		Calendar currentTime = new GregorianCalendar();
+        public void setSecond(int input) {
+            this.Second = input;
+        }
 
-		target.set(currentTime.get(Calendar.YEAR), currentTime.get(Calendar.MONTH) + 1, currentTime.get(Calendar.DAY_OF_MONTH), koma.getHour(), koma.getMinute(), 0);
-	}
+        public void increment (int input) {
+            this.Minute += input;
+            if (this.Minute >= 60) {
+                this.Hour+=this.Minute / 60;
+                this.Minute%=60;
+            }
+        }
 
-	public static Koma getNextKoma(Koma[][] input, int flag) {
 
-		Koma temp = null;
+    }
 
-		Calendar komaTime = new GregorianCalendar();
+    static class Koma {
+        int status;
+        Time start;
+        Time end;
+        String name;
 
-		for ( int i = 0; i < 13 ; i++ ) {
+        public Koma() {
+            start = new Time();
+            end = new Time();
+        }
 
-			int akiflag = 1;
+        public int getStatus() {
+            return this.status;
+        }
 
-			temp = input[findWeekday(komaTime.get(Calendar.YEAR), komaTime.get(Calendar.MONTH), komaTime.get(Calendar.DAY_OF_MONTH))][i];
+        public String getName() {
+            return this.name;
+        }
 
-			buildKomaTime(komaTime, temp);
+        public void setStatus(int input) {
+            this.status = input;
+        }
 
-			if (flag == 1) {
+        public void setName(String input) {
+            this.name = input;
+        }
+    }
 
-				Calendar curr = new GregorianCalendar();
+    public static boolean compareTime(Time a, Time b) {
 
-				curr.set(curr.get(Calendar.YEAR), curr.get(Calendar.MONTH) + 1, curr.get(Calendar.DAY_OF_MONTH) + 1, curr.get(Calendar.HOUR_OF_DAY), curr.get(Calendar.MINUTE), 0);
+        if (a.getHour() < b.getHour()) return false;
 
-				if (curr.getTimeInMillis() < komaTime.getTimeInMillis()) {
-					if (temp.getStatus() == 1) { 
-						return temp;
-					} else akiflag = 0;
-				}
+        else if (a.getMinute() < b.getMinute()) return false;
 
-			} else if (((new GregorianCalendar()).getTimeInMillis() < komaTime.getTimeInMillis()) && (temp.getStatus() == 1)) return temp;
+        else if (a.getMinute() < b.getMinute()) return false;
 
-		}
+        else return true;
 
-		temp = null;
+    }
 
-		komaTime = null;
+    public static void registerSchedule(Koma[][] input) {
+        for ( int i = 0; i < 5 ; i++ ) {
+            System.out.println("\nRegistering " + weekdays[i] + "...");
+            InputStreamReader isr = new InputStreamReader(System.in);
+            BufferedReader br = new BufferedReader(isr);
+            for (int j = 0; j < 6 ; j++) {
+                System.out.println("Is koma " + (j + 1) + " registered?");
+                int temp = 0;
 
-		return null;
+                try {
+                    temp = Integer.parseInt(br.readLine());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-	}
+                if (temp > 0) {
+                    try {
+                        input[i][j].setStatus(temp);
+                        System.out.println("name :");
+                        input[i][j].setName(br.readLine());
+                        System.out.println();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-	public static void main(String[] args) {
-		
-		// make new koma matrix
+                }
 
-		Koma[][] schedule = new Koma[5][13];
+            }
+        }
+    }
 
-		// register data
+    public static void calendarToTime(Calendar calendar, Time time) {
+        time.setHour(calendar.get(Calendar.HOUR_OF_DAY));
+        time.setMinute(calendar.get(Calendar.MINUTE));
+        time.setSecond(calendar.get(Calendar.SECOND));
+    }
 
-		registerSchedule(schedule);
+    public static Koma processKoma(Koma[][] input, int flag) {
 
-		// search
+        Calendar currentCalendar = new GregorianCalendar();
 
-		Koma output = getNextKoma(schedule, 0);
+        Time currTime = new Time();
 
-		// output
+        int weekday = 0;
 
-		Calendar currentTime = new GregorianCalendar();
+        if (flag == 0) {
+            weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
+            weekday += 5;
+        } else {
+            weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
+            weekday += 6;
+        }
 
-		if (output==null) {
-			System.out.print("Go home");
-			output = getNextKoma(schedule, 1);
-		} else {
-			GregorianCalendar nextKomaTime = new GregorianCalendar();
-			buildKomaTime(nextKomaTime, output);
-			System.out.print("Next class starts in: ");
-			System.out.print(nextKomaTime.getTimeInMillis() - System.currentTimeMillis());
-			System.out.print("ms\n");
-		}
+        weekday %= 7;
 
-	}
-	
+        if (weekday > 5) return null;
+
+        else weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
+
+        calendarToTime(currentCalendar, currTime);
+
+        for (int i = 0; i < 6; i++) {
+
+            if (compareTime(currTime, input[weekday][i].start)) {
+
+                if (compareTime(currTime, input[weekday][i].end)) {
+                    if (i == 5) return null;
+                    else return input[weekday][i + 1];
+                }
+
+                else return input[weekday][i];
+            }
+
+        }
+
+        return null;
+
+    }
+
+    public static void main(String[] args) {
+
+        // make new koma matrix
+
+        Koma[][] schedule = new Koma[5][6];
+
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 6; j++) {
+                schedule[i][j] = new Koma();
+            }
+        }
+
+        // set times
+
+        int breakA = 10;
+        int breakB = 55;
+        int classDur = 90;
+        int breakDur;
+
+        for (int i = 0; i < 5; i++) {
+            schedule[i][0].start.setHour(8);
+            schedule[i][0].start.setMinute(40);
+            schedule[i][0].end.setHour(10);
+            schedule[i][0].end.setMinute(10);
+                for (int j = 1; j < 6; j++) {
+                    if ( j==2 ) breakDur = breakB;
+                    else breakDur = breakA;
+                    schedule[i][j].start.setHour(schedule[i][j - 1].end.getHour());
+                    schedule[i][j].start.setMinute(schedule[i][j - 1].end.getMinute());
+                    schedule[i][j].start.increment(breakDur);
+                    schedule[i][j].end.setHour(schedule[i][j].start.getHour());
+                    schedule[i][j].end.setMinute(schedule[i][j].start.getMinute());
+                    schedule[i][j].end.increment(classDur);
+                }
+
+        }
+
+        // register data
+
+        registerSchedule(schedule);
+
+        // search
+
+        Koma output = processKoma(schedule, 0);
+
+        // output
+
+        Calendar currentTime = new GregorianCalendar();
+
+        if (output==null) {
+            System.out.println("Go home");
+            output = processKoma(schedule, 1);
+            System.out.println(output.start.getHour() + ":" + output.start.getMinute());
+        } else {
+
+            Time temp = new Time();
+            calendarToTime(currentTime,temp);
+            if (compareTime(temp, output.end)) {
+                System.out.println("This class ends: ");
+                System.out.println(output.end.getHour() + ":" + output.end.getMinute());
+            } else {
+                System.out.println("Next class starts: ");
+                System.out.println(output.start.getHour() + ":" + output.start.getMinute());
+            }
+        }
+
+    }
 }
