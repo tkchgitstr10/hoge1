@@ -6,7 +6,7 @@ import java.util.GregorianCalendar;
 
 public class test {
 
-    public static String weekdays[] = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+    public static String weekdays[] = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
 
     static class Time {
         int Hour;
@@ -144,8 +144,6 @@ public class test {
         weekday %= 7;
 
         if (weekday > 5) return null;
-
-        else weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
 
         calendarToTime(currentCalendar, currTime);
 
