@@ -20,8 +20,7 @@ public class test {
         }
 
         public int getSecond() {
-            // return this.Second;
-            return 0;
+            return this.Second;
         }
 
         public void setHour(int input) {
@@ -47,6 +46,7 @@ public class test {
 
     static class Koma {
         int status;
+        int weekday;
         Time start;
         Time end;
         String name;
@@ -60,12 +60,20 @@ public class test {
             return this.status;
         }
 
+        public int getWeekday() {
+            return this.weekday;
+        }
+
         public String getName() {
             return this.name;
         }
 
         public void setStatus(int input) {
             this.status = input;
+        }
+
+        public void setWeekday(int input) {
+            this.weekday = input;
         }
 
         public void setName(String input) {
@@ -75,17 +83,23 @@ public class test {
 
     public static boolean compareTime(Time a, Time b) {
 
-        if (a.getHour() < b.getHour()) return true;
+        if (a.getHour() < b.getHour()) return false;
+
+        else if (a.getHour() > b.getHour()) return true;
 
         else {
 
-            if (a.getMinute() < b.getMinute()) return true;
+            if (a.getMinute() < b.getMinute()) return false;
+
+            else if (a.getMinute() > b.getMinute()) return true;
 
             else {
-                if (a.getSecond() < b.getSecond()) return true;
-                else return false;
-            }
+                if (a.getSecond() < b.getSecond()) return false;
 
+                if (a.getSecond() > b.getSecond()) return true;
+
+                else return true;
+            }
         }
     }
 
@@ -197,9 +211,9 @@ public class test {
 
             temp = input[weekday][i];
 
-            if (compareTime(temp.start, currTime)) {
+            if (compareTime(currTime, temp.start)) {
 
-                if (compareTime(temp.end, currTime)) {
+                if (compareTime(currTime, temp.end)) {
                     // currTime is more than both start and end, go to next i
                     // or, if end of day is reached, return null
                     if ( i == komaCount - 1 ) return null;
@@ -210,7 +224,7 @@ public class test {
                     currTime.increment(countIncrement(currTime, temp.end));
                     processHelper(input, currTime, weekday, komaCount);
                 }
-            }
+            } else return temp;
 
         }
         // end of day, no komas found
@@ -221,31 +235,31 @@ public class test {
         return (b.getHour() - a.getHour()) * 60 + (b.getMinute() - a.getMinute()) + 11;
     }
 
-    public static Koma processKoma(Koma[][] input, int flag, int komaCount) {
-
-        Calendar currentCalendar = new GregorianCalendar();
+    public static Koma processKoma(Koma[][] input, int startWeekday, int komaCount, int activeDays) {
 
         Time currTime = new Time();
 
-        int weekday;
-
         // shift GregorianCalendar DAY_OF_WEEK so that Monday is 0
 
-        if (flag == 0) {
-            weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
-            weekday += 5;
-        } else {
-            weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
-            weekday += 6;
+        Calendar currentCalendar = new GregorianCalendar();
+
+        if ( (currentCalendar.get(Calendar.DAY_OF_WEEK) + 5 ) % 7 == startWeekday ) {
+            calendarToTime(currentCalendar, currTime);
         }
 
-        weekday %= 7;
+        else {
+            currTime.setHour(0);
+            currTime.setMinute(0);
+            currTime.setSecond(1);
+        }
 
-        if (weekday > komaCount && komaCount < 7) return null;
+        if (startWeekday >= activeDays) startWeekday = 0;
 
-        calendarToTime(currentCalendar, currTime);
+        Koma output = processHelper(input, currTime, startWeekday, komaCount);
 
-        Koma output = processHelper(input, currTime, weekday, komaCount);
+        if (output == null) output = processKoma(input, (startWeekday + 1) % 7, komaCount, activeDays);
+
+        else return output;
 
         return output;
 
@@ -271,6 +285,7 @@ public class test {
         for (int i = 0; i < ACTIVEDAYS; i++) {
             for (int j = 0; j < KOMACOUNT; j++) {
                 schedule[i][j] = new Koma();
+                schedule[i][j].setWeekday(i);
             }
         }
 
@@ -305,22 +320,23 @@ public class test {
             prepareWrite(out, schedule, ACTIVEDAYS, KOMACOUNT);
         }
 
+        Calendar cc = new GregorianCalendar();
+
+        int weekday = (cc.get(Calendar.DAY_OF_WEEK) + 5) % 7;
+
         // search
 
-        Koma output = processKoma(schedule, 0, KOMACOUNT);
+        Koma output = processKoma(schedule, weekday, KOMACOUNT, ACTIVEDAYS);
 
         // output
 
-        Calendar currentTime = new GregorianCalendar();
-
-        if (output==null) {
+        if (output.getWeekday() != weekday ) {
             System.out.println("Go home");
-            output = processKoma(schedule, 1, KOMACOUNT);
+            output = processKoma(schedule, 1, KOMACOUNT, ACTIVEDAYS);
             System.out.println(output.start.getHour() + ":" + output.start.getMinute());
         } else {
-
             Time temp = new Time();
-            calendarToTime(currentTime,temp);
+            calendarToTime(cc,temp);
             if (compareTime(temp, output.end)) {
                 System.out.println("This class ends: ");
                 System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
