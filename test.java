@@ -270,8 +270,6 @@ public class test {
 
         // set times
 
-
-
         for (int i = 0; i < ACTIVEDAYS; i++) {
             schedule[i][0].start.setHour(8);
             schedule[i][0].start.setMinute(40);
@@ -293,14 +291,16 @@ public class test {
         // register data
 
         if (args.length == 0) {
-            registerSchedule(schedule);
-            File out = new File("tempfile");
-            prepareWrite(out, schedule, ACTIVEDAYS, KOMACOUNT);
+
         }
 
-        else{
-            File file = new File(args[0]);
-            prepareRead(file, schedule);
+        File out = new File("tempfile");
+
+        if (out.exists()) {
+            prepareRead(out, schedule);
+        } else {
+            registerSchedule(schedule);
+            prepareWrite(out, schedule, ACTIVEDAYS, KOMACOUNT);
         }
 
         // search
