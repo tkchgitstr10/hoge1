@@ -127,9 +127,7 @@ public class test {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
-
             }
         }
     }
@@ -332,12 +330,16 @@ public class test {
 
         if (output.getWeekday() != weekday ) {
             System.out.println("Go home");
-            output = processKoma(schedule, 1, KOMACOUNT, ACTIVEDAYS);
-            System.out.println(output.start.getHour() + ":" + output.start.getMinute());
+            System.out.println("Next class starts: ");
+            System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
+            System.out.print("Class name: ");
+            System.out.println(output.getName());
         } else {
             Time temp = new Time();
+
             calendarToTime(cc,temp);
-            if (compareTime(temp, output.end)) {
+
+            if (compareTime(output.end, temp)) {
                 System.out.println("This class ends: ");
                 System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
                 System.out.print("Class name: ");
@@ -345,6 +347,8 @@ public class test {
             } else {
                 System.out.println("Next class starts: ");
                 System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
+                System.out.print("Class name: ");
+                System.out.println(output.getName());
             }
         }
 
