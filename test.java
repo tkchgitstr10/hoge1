@@ -43,8 +43,6 @@ public class test {
                 this.Minute%=60;
             }
         }
-
-
     }
 
     static class Koma {
@@ -77,13 +75,18 @@ public class test {
 
     public static boolean compareTime(Time a, Time b) {
 
-        if (a.getHour() < b.getHour()) return false;
+        if (a.getHour() < b.getHour()) return true;
 
-        else if (a.getMinute() < b.getMinute()) return false;
+        else {
 
-        else if (a.getMinute() < b.getMinute()) return false;
+            if (a.getMinute() < b.getMinute()) return true;
 
-        else return true;
+            else {
+                if (a.getSecond() < b.getMinute()) return true;
+                else return false;
+            }
+
+        }
     }
 
     public static void registerSchedule(Koma[][] input) {
@@ -194,9 +197,9 @@ public class test {
 
             temp = input[weekday][i];
 
-            if (compareTime(currTime, temp.start)) {
+            if (compareTime(temp.start, currTime)) {
 
-                if (compareTime(currTime, temp.end)) {
+                if (compareTime(temp.end, currTime)) {
                     // currTime is more than both start and end, go to next i
                     // or, if end of day is reached, return null
                     if ( i == komaCount - 1 ) return null;
