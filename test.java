@@ -82,7 +82,7 @@ public class test {
             if (a.getMinute() < b.getMinute()) return true;
 
             else {
-                if (a.getSecond() < b.getMinute()) return true;
+                if (a.getSecond() < b.getSecond()) return true;
                 else return false;
             }
 
