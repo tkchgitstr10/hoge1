@@ -127,7 +127,9 @@ public class test {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                 }
+
             }
         }
     }
@@ -218,11 +220,17 @@ public class test {
                 }
 
                 else if (temp.getStatus() == 1) return temp;
+
                 else {
                     currTime.increment(countIncrement(currTime, temp.end));
                     processHelper(input, currTime, weekday, komaCount);
                 }
-            } else return temp;
+            } else if (temp.getStatus() == 1) return temp;
+
+            else {
+                currTime.increment(countIncrement(currTime, temp.end));
+                processHelper(input, currTime, weekday, komaCount);
+            }
 
         }
         // end of day, no komas found
