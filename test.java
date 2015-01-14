@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Calendar;
@@ -22,7 +23,8 @@ public class test {
         }
 
         public int getSecond() {
-            return this.Second;
+            // return this.Second;
+            return 0;
         }
 
         public void setHour(int input) {
@@ -85,7 +87,6 @@ public class test {
         else if (a.getMinute() < b.getMinute()) return false;
 
         else return true;
-
     }
 
     public static void registerSchedule(Koma[][] input) {
@@ -119,19 +120,55 @@ public class test {
         }
     }
 
+    public static void registerFromFile(File file, Koma[][] input) {
+
+    }
+
     public static void calendarToTime(Calendar calendar, Time time) {
         time.setHour(calendar.get(Calendar.HOUR_OF_DAY));
         time.setMinute(calendar.get(Calendar.MINUTE));
         time.setSecond(calendar.get(Calendar.SECOND));
     }
 
-    public static Koma processKoma(Koma[][] input, int flag) {
+    public static Koma processHelper(Koma[][] input, Time currTime, int weekday, int komaCount) {
+        Koma temp;
+        for (int i = 0; i < komaCount; i++) {
+
+            temp = input[weekday][i];
+
+            if (compareTime(currTime, temp.start)) {
+
+                if (compareTime(currTime, temp.end)) {
+                    // currTime is more than both start and end, go to next i
+                    // or, if end of day is reached, return null
+                    if ( i == komaCount - 1 ) return null;
+                }
+
+                else if (temp.getStatus() == 1) return temp;
+                else {
+                    currTime.increment(countIncrement(currTime, temp.end));
+                    processHelper(input, currTime, weekday, komaCount);
+                }
+            }
+
+        }
+        // end of day, no komas found
+        return null;
+    }
+
+    public static int countIncrement(Time a, Time b) {
+        return (b.getHour() - a.getHour()) * 60 + (b.getMinute() - a.getMinute()) + 11;
+    }
+
+    public static Koma processKoma(Koma[][] input, int flag, int komaCount) {
 
         Calendar currentCalendar = new GregorianCalendar();
 
         Time currTime = new Time();
 
-        int weekday = 0;
+        int weekday;
+
+        // shift GregorianCalendar DAY_OF_WEEK so that Monday is 0
 
         if (flag == 0) {
             weekday = currentCalendar.get(Calendar.DAY_OF_WEEK);
@@ -143,23 +180,13 @@ public class test {
 
         weekday %= 7;
 
-        if (weekday > 5) return null;
+        if (weekday > komaCount && komaCount < 7) return null;
 
         calendarToTime(currentCalendar, currTime);
 
-        for (int i = 0; i < 6; i++) {
+        Koma output = processHelper(input, currTime, weekday, komaCount);
 
-            if (compareTime(currTime, input[weekday][i].start)) {
 
-                if (compareTime(currTime, input[weekday][i].end)) {
-                    if (i == 5) return null;
-                    else return input[weekday][i + 1];
-                }
-
-                else return input[weekday][i];
-            }
-
-        }
 
         return null;
 
@@ -167,29 +194,37 @@ public class test {
 
     public static void main(String[] args) {
 
-        // make new koma matrix
-
-        Koma[][] schedule = new Koma[5][6];
-
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 6; j++) {
-                schedule[i][j] = new Koma();
-            }
-        }
-
-        // set times
+        // settings
 
         int breakA = 10;
         int breakB = 55;
         int classDur = 90;
         int breakDur;
 
-        for (int i = 0; i < 5; i++) {
+        int KOMACOUNT = 6;
+        int ACTIVEDAYS = 5;
+
+
+        // make new koma matrix
+
+        Koma[][] schedule = new Koma[ACTIVEDAYS][KOMACOUNT];
+
+        for (int i = 0; i < ACTIVEDAYS; i++) {
+            for (int j = 0; j < KOMACOUNT; j++) {
+                schedule[i][j] = new Koma();
+            }
+        }
+
+        // set times
+
+
+
+        for (int i = 0; i < ACTIVEDAYS; i++) {
             schedule[i][0].start.setHour(8);
             schedule[i][0].start.setMinute(40);
             schedule[i][0].end.setHour(10);
             schedule[i][0].end.setMinute(10);
-                for (int j = 1; j < 6; j++) {
+                for (int j = 1; j < KOMACOUNT; j++) {
                     if ( j==2 ) breakDur = breakB;
                     else breakDur = breakA;
                     schedule[i][j].start.setHour(schedule[i][j - 1].end.getHour());
@@ -204,11 +239,16 @@ public class test {
 
         // register data
 
-        registerSchedule(schedule);
+        if (args.length == 0) registerSchedule(schedule);
+
+        /* else{
+            File file = new File(args[0]);
+            registerFromFile(file, schedule);
+        } */
 
         // search
 
-        Koma output = processKoma(schedule, 0);
+        Koma output = processKoma(schedule, 0, KOMACOUNT);
 
         // output
 
@@ -216,7 +256,7 @@ public class test {
 
         if (output==null) {
             System.out.println("Go home");
-            output = processKoma(schedule, 1);
+            output = processKoma(schedule, 1, KOMACOUNT);
             System.out.println(output.start.getHour() + ":" + output.start.getMinute());
         } else {
 
@@ -224,10 +264,12 @@ public class test {
             calendarToTime(currentTime,temp);
             if (compareTime(temp, output.end)) {
                 System.out.println("This class ends: ");
-                System.out.println(output.end.getHour() + ":" + output.end.getMinute());
+                System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
+                System.out.print("Class name: ");
+                System.out.println(output.getName());
             } else {
                 System.out.println("Next class starts: ");
-                System.out.println(output.start.getHour() + ":" + output.start.getMinute());
+                System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
             }
         }
 
