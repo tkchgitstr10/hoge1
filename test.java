@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -120,8 +117,66 @@ public class test {
         }
     }
 
-    public static void registerFromFile(File file, Koma[][] input) {
+    public static void prepareRead(File file, Koma[][] input) {
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new FileReader(file));
+        } catch(Exception e) {
 
+        } finally {
+            try {
+                registerFromFile(in, input);
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void prepareWrite(File file, Koma[][] input, int activeDays, int komaCount) {
+        PrintWriter pw = null;
+        try {
+            pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+        } catch(Exception e) {
+
+        } finally {
+            saveToFile(pw, input, activeDays, komaCount);
+            pw.close();
+        }
+
+    }
+
+    public static void registerFromFile(BufferedReader in, Koma[][] input) throws IOException {
+        String buffer = new String();
+        int weekday = 0;
+        int koma = 0;
+
+        while (!buffer.equals('\0')) {
+            buffer = in.readLine();
+
+            if (Integer.parseInt(buffer) >= 10000) {
+                weekday = (Integer.parseInt(buffer) / 10000) - 1;
+            } else if (Integer.parseInt(buffer) >= 1000) {
+                koma = (Integer.parseInt(buffer) / 1000) - 1;
+            } else {
+                input[weekday][koma].setStatus(1);
+                buffer = in.readLine();
+                input[weekday][koma].setName(buffer);
+            }
+
+        }
+    }
+
+    public static void saveToFile(PrintWriter pw, Koma[][] input, int activeDays, int komaCount) {
+        for (int i = 0; i < activeDays; i++) {
+            pw.println((i+1)*10000);
+            for (int j = 0; j < komaCount; j++) {
+                if (input[i][j].getStatus() == 1) {
+                    pw.println((j+1)*1000);
+                    pw.println(input[i][j].getName());
+                }
+            }
+        }
     }
 
     public static void calendarToTime(Calendar calendar, Time time) {
@@ -186,9 +241,7 @@ public class test {
 
         Koma output = processHelper(input, currTime, weekday, komaCount);
 
-
-
-        return null;
+        return output;
 
     }
 
@@ -239,12 +292,16 @@ public class test {
 
         // register data
 
-        if (args.length == 0) registerSchedule(schedule);
+        if (args.length == 0) {
+            registerSchedule(schedule);
+            File out = new File("tempfile");
+            prepareWrite(out, schedule, ACTIVEDAYS, KOMACOUNT);
+        }
 
-        /* else{
+        else{
             File file = new File(args[0]);
-            registerFromFile(file, schedule);
-        } */
+            prepareRead(file, schedule);
+        }
 
         // search
 
