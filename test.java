@@ -42,6 +42,23 @@ public class test {
                 this.Minute%=60;
             }
         }
+
+        public void decrement() {
+            this.setSecond(this.getSecond() - 1);
+            if (this.getSecond() == -1) {
+                this.setSecond(59);
+                this.setMinute(this.getMinute() - 1);
+                if (this.getMinute() == 0) {
+                    this.setMinute(this.getMinute() - 1);
+                    this.setHour(this.getHour() - 1);
+                }
+            }
+        }
+
+        public boolean isZero () {
+            if (this.getSecond() == 0 && this.getMinute() == 0 && this.getHour() == 0) return true;
+            else return false;
+        }
     }
 
     static class Koma {
@@ -103,6 +120,28 @@ public class test {
         }
     }
 
+    public static Time startTime(Time a, Time b) {
+        Time output = new Time();
+
+        output.setHour(a.getHour() - b.getHour());
+
+        output.setMinute(a.getMinute() - b.getMinute());
+
+        if (output.getMinute() < 0) {
+            output.setHour(output.getHour() - 1);
+            output.setMinute(output.getMinute() + 60);
+        }
+
+        output.setSecond(a.getSecond() - b.getSecond());
+
+        if (output.getSecond() < 0) {
+            output.setMinute(output.getMinute() - 1);
+            output.setSecond(output.getSecond() + 60);
+        }
+
+        return output;
+    }
+
     public static void registerSchedule(Koma[][] input) {
         for ( int i = 0; i < 5 ; i++ ) {
             System.out.println("\nRegistering " + weekdays[i] + "...");
@@ -127,9 +166,7 @@ public class test {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
-
             }
         }
     }
@@ -160,7 +197,6 @@ public class test {
             saveToFile(pw, input, activeDays, komaCount);
             pw.close();
         }
-
     }
 
     public static void registerFromFile(BufferedReader in, Koma[][] input) throws IOException {
@@ -183,7 +219,6 @@ public class test {
                     input[weekday][koma].setName(buffer);
                 }
             }
-
         } while (!(buffer == null));
     }
 
@@ -231,7 +266,6 @@ public class test {
                 currTime.increment(countIncrement(currTime, temp.end));
                 processHelper(input, currTime, weekday, komaCount);
             }
-
         }
         // end of day, no komas found
         return null;
@@ -330,35 +364,67 @@ public class test {
 
         int weekday = (cc.get(Calendar.DAY_OF_WEEK) + 5) % 7;
 
-        // search
+        boolean flag = false;
+        boolean onKoma = false;
+        Time temp;
+        Time counter = null;
 
-        Koma output = processKoma(schedule, weekday, KOMACOUNT, ACTIVEDAYS);
+        while (true) {
 
-        // output
+            Koma output = null;
 
-        if (output.getWeekday() != weekday ) {
-            System.out.println("Go home");
-            System.out.println("Next class starts: ");
-            System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
-            System.out.print("Class name: ");
-            System.out.println(output.getName());
-        } else {
-            Time temp = new Time();
+            if (!flag) {
+                output = processKoma(schedule, weekday, KOMACOUNT, ACTIVEDAYS);
+                flag = true;
 
-            calendarToTime(cc,temp);
+                if (output.getWeekday() != weekday) {
+                    System.out.println("Go home");
+                    System.out.println("Next class starts: ");
+                    System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
+                    System.out.print("Class name: ");
+                    System.out.println(output.getName());
+                    break;
+                } else {
+                    temp = new Time();
 
-            if (compareTime(output.end, temp)) {
-                System.out.println("This class ends: ");
-                System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
-                System.out.print("Class name: ");
-                System.out.println(output.getName());
+                    calendarToTime(cc, temp);
+
+                    if (compareTime(output.end, temp)) {
+                        System.out.println("This class ends: ");
+                        System.out.println(output.end.getHour() + ":" + output.end.getMinute() + ":" + output.end.getSecond());
+                        System.out.print("Class name: ");
+                        System.out.println(output.getName());
+                        onKoma = true;
+                        counter = startTime(output.end, temp);
+                    } else {
+                        System.out.println("Next class starts: ");
+                        System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
+                        System.out.print("Class name: ");
+                        System.out.println(output.getName());
+                        onKoma = false;
+                        counter = startTime(output.start, temp);
+                    }
+                }
             } else {
-                System.out.println("Next class starts: ");
-                System.out.println(output.start.getHour() + ":" + output.start.getMinute() + ":" + output.end.getSecond());
-                System.out.print("Class name: ");
-                System.out.println(output.getName());
+
+                if (onKoma || !onKoma) {
+
+                    // decrement time
+
+                    counter.decrement();
+
+                    System.out.println(counter.getHour() + ":" + counter.getMinute() + ":" + counter.getSecond());
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                if (counter.isZero()) flag = false;
             }
         }
-
     }
 }
