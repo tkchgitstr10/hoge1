@@ -151,20 +151,23 @@ public class test {
         int weekday = 0;
         int koma = 0;
 
-        while (!buffer.equals('\0')) {
+        do {
             buffer = in.readLine();
+            try {
+                if (Integer.parseInt(buffer) >= 10000) {
+                    weekday = (Integer.parseInt(buffer) / 10000) - 1;
+                } else if (Integer.parseInt(buffer) >= 100) {
+                    koma = (Integer.parseInt(buffer) / 100) - 1;
+                }
 
-            if (Integer.parseInt(buffer) >= 10000) {
-                weekday = (Integer.parseInt(buffer) / 10000) - 1;
-            } else if (Integer.parseInt(buffer) >= 1000) {
-                koma = (Integer.parseInt(buffer) / 1000) - 1;
-            } else {
-                input[weekday][koma].setStatus(1);
-                buffer = in.readLine();
-                input[weekday][koma].setName(buffer);
+            } catch (NumberFormatException e) {
+                if (!(buffer == null)) {
+                    input[weekday][koma].setStatus(1);
+                    input[weekday][koma].setName(buffer);
+                }
             }
 
-        }
+        } while (!(buffer == null));
     }
 
     public static void saveToFile(PrintWriter pw, Koma[][] input, int activeDays, int komaCount) {
@@ -172,7 +175,7 @@ public class test {
             pw.println((i+1)*10000);
             for (int j = 0; j < komaCount; j++) {
                 if (input[i][j].getStatus() == 1) {
-                    pw.println((j+1)*1000);
+                    pw.println((j+1)*100);
                     pw.println(input[i][j].getName());
                 }
             }
@@ -289,10 +292,6 @@ public class test {
         }
 
         // register data
-
-        if (args.length == 0) {
-
-        }
 
         File out = new File("tempfile");
 
